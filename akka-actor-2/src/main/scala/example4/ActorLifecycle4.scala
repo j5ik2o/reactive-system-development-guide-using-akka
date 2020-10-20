@@ -1,9 +1,9 @@
-package example3
+package example4
 
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorSystem, Behavior, PostStop}
+import akka.actor.typed.{ActorSystem, Behavior, PostStop, Terminated}
 
-object ActorLifecycle3 extends App {
+object ActorLifecycle4 extends App {
 
   def child: Behavior[String] =
     Behaviors.setup { context =>
@@ -25,10 +25,15 @@ object ActorLifecycle3 extends App {
 
   def main: Behavior[Any] = Behaviors.setup { context =>
     val childRef = context.spawn(child, "child")
+    context.watch(childRef) // childRefを監視対象にする
     childRef ! "test"
     Thread.sleep(1000) // しばらく待つ
     childRef ! "stop"
-    Behaviors.same
+    Behaviors.receiveSignal {
+      case (context, Terminated(ref)) if ref == childRef => // 子アクターの終了を検知
+        context.log.info(s"receiveSignal: childRef has been terminated")
+        Behaviors.same
+    }
   }
 
   ActorSystem(main, "main")

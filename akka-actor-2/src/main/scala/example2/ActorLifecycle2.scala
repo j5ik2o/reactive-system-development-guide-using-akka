@@ -6,15 +6,17 @@ import akka.actor.typed.{ActorSystem, Behavior}
 object ActorLifecycle2 extends App {
 
   def child: Behavior[String] =
-    Behaviors
-      .receiveMessage[String] {
-        case "stop" =>
-          println(s"msg = stop")
-          Behaviors.stopped
-        case msg =>
-          println(s"msg = $msg")
-          Behaviors.same
-      }
+    Behaviors.setup { context =>
+      Behaviors
+        .receiveMessage[String] {
+          case "stop" =>
+            context.log.info(s"msg = stop")
+            Behaviors.stopped
+          case msg =>
+            context.log.info(s"msg = $msg")
+            Behaviors.same
+        }
+    }
 
   def main: Behavior[Any] = Behaviors.setup { context =>
     val childRef = context.spawn(child, "child")
