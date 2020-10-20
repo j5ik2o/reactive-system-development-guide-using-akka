@@ -1,4 +1,4 @@
-package example
+package example1
 
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior, Terminated}

@@ -1,18 +1,23 @@
-package example
+package example3
 
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorSystem, Behavior}
+import akka.actor.typed.{ActorSystem, Behavior, PostStop}
 
 object ActorLifecycle extends App {
 
   def child: Behavior[String] =
     Behaviors
-      .receiveMessage {
+      .receiveMessage[String] {
         case "stop" =>
           println(s"msg = stop")
           Behaviors.stopped
         case msg =>
           println(s"msg = $msg")
+          Behaviors.same
+      }
+      .receiveSignal {
+        case (context, PostStop) =>
+          println(s"receiveSignal: PostStop")
           Behaviors.same
       }
 
