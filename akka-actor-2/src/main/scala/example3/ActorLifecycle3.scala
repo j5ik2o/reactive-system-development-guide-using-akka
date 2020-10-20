@@ -3,7 +3,7 @@ package example3
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorSystem, Behavior, PostStop}
 
-object ActorLifecycle extends App {
+object ActorLifecycle3 extends App {
 
   def child: Behavior[String] =
     Behaviors
