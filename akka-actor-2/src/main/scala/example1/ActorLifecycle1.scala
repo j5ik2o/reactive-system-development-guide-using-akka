@@ -23,7 +23,7 @@ object ActorLifecycle1 extends App {
     childRef ! "test"
     Thread.sleep(1000) // しばらく待つ
     childRef ! "stop"
-    Behaviors.same
+    Behaviors.stopped
   }
 
   ActorSystem(main, "main")

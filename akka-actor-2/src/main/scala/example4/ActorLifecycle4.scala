@@ -32,7 +32,7 @@ object ActorLifecycle4 extends App {
     Behaviors.receiveSignal {
       case (context, Terminated(ref)) if ref == childRef => // 子アクターの終了を検知
         context.log.info(s"receiveSignal: childRef has been terminated")
-        Behaviors.same
+        Behaviors.stopped
     }
   }
 

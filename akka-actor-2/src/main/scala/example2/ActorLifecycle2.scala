@@ -24,7 +24,7 @@ object ActorLifecycle2 extends App {
     Thread.sleep(1000) // しばらく待つ
     // childRef ! "stop""
     context.stop(childRef)
-    Behaviors.same
+    Behaviors.stopped
   }
 
   ActorSystem(main, "main")
