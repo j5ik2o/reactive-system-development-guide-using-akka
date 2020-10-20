@@ -2,7 +2,7 @@ package example5
 
 import akka.actor.typed.{ActorRef, ActorSystem}
 
-object Main extends App {
+object Main5 extends App {
   val system = ActorSystem(Printer(), "fire-and-forget-sample")
 
   // note how the system is also the top level actor ref

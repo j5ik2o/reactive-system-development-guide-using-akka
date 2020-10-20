@@ -12,6 +12,7 @@ object Printer {
   def apply(): Behavior[Message] =
     Behaviors.receive {
       case (context, Stop) =>
+        context.log.info("Stop")
         Behaviors.stopped
       case (context, PrintMe(message)) =>
         context.log.info(message)
