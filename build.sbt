@@ -11,11 +11,12 @@ val commonSettings = Seq(
   )
 )
 
-val `akka-actor-2` =
-  (project in file("akka-actor-2")).settings(commonSettings)
+val `akka-actor-3` = (project in file("akka-actor-3")).settings(commonSettings)
+
+val `akka-actor-2` = (project in file("akka-actor-2")).settings(commonSettings)
 
 val `akka-actor-1` =
   (project in file("akka-actor-1")).settings(commonSettings)
 
 val root = (project in file("."))
-  .aggregate(`akka-actor-1`, `akka-actor-2`)
+  .aggregate(`akka-actor-1`, `akka-actor-2`, `akka-actor-3`)
