@@ -1,4 +1,4 @@
-package example1
+package example5
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}

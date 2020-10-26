@@ -1,11 +1,11 @@
-package example1
+package example5
 
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import akka.util.Timeout
-import example1.MapActor.{MapInput, MapOutput}
-import example1.ReduceActor.{ReduceInput, ReduceOutput}
+import example5.MapActor.{MapInput, MapOutput}
+import example5.ReduceActor.{ReduceInput, ReduceOutput}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
@@ -72,15 +72,15 @@ object MasterActor extends App {
           context.children.foreach { c =>
             context.stop(c)
           }
-          val reduceActors: Seq[ActorRef[ReduceInput]] = for (i <- 1 to reduceN)
+          val reduceActorRefs = for (i <- 1 to reduceN)
             yield context.spawn(ReduceActor(), s"reducer-$i")
           val sortedMapOutputs =
-            mapOutputs.flatMap(_.entries).sortWith(_._1 < _._1).toList
+            mapOutputs.flatMap(_.entries).sortWith(_._1 < _._1)
           val splited = split(sortedMapOutputs, Vector.empty)
           reduceInputs ++= splited
           splited.zipWithIndex.foreach {
             case (e, index) =>
-              reduceActors(index % reduceActors.length) ! e
+              reduceActorRefs(index % reduceActorRefs.length) ! e
           }
           reducing(reduceInputs.toList, replyTo)
         }
@@ -98,13 +98,13 @@ object MasterActor extends App {
       }
       def init: Behavior[Message] = Behaviors.receiveMessage[Message] {
         case Count(data, replyTo) =>
-          val mapActors: Seq[ActorRef[MapInput]] = for (i <- 1 to mapN)
+          val mapActorRefs = for (i <- 1 to mapN)
             yield context.spawn(MapActor(), s"mapper-$i")
           val mapper: ActorRef[MapOutput] =
             context.messageAdapter[MapOutput](rsp => WrappedMapOutput(rsp))
           data.zipWithIndex.foreach {
             case (e, index) =>
-              mapActors(index % mapActors.length) ! MapInput(e, mapper)
+              mapActorRefs(index % mapActorRefs.length) ! MapInput(e, mapper)
           }
           mapping(data, replyTo)
       }
