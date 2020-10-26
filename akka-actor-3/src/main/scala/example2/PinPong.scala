@@ -31,7 +31,6 @@ object PinPong extends App {
 
     def apply(toRef: ActorRef[Receiver.Message], max: Int): Behavior[Message] =
       Behaviors.setup[Message] { context =>
-        implicit val timeout = Timeout(3 seconds)
         toRef ! Receiver.Ping(context.messageAdapter(ref => WrappedPong(ref)))
         def handler(counter: Int): Behavior[Message] =
           if (counter == 0)
