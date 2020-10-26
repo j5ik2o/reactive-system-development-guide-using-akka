@@ -6,8 +6,9 @@ import akka.util.Timeout
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
+import scala.util.{Failure, Success}
 
-object PinPong extends App {
+object PinPongAsk extends App {
 
   object Receiver {
     sealed trait Message
@@ -18,6 +19,7 @@ object PinPong extends App {
       Behaviors.receiveMessage {
         case Ping(replyTo) =>
           context.log.info("receive: Ping")
+          // Thread.sleep(5000)
           replyTo ! Pong()
           Behaviors.same
       }
@@ -27,23 +29,37 @@ object PinPong extends App {
 
   object Sender {
     sealed trait Message
-    case class WrappedPong(msg: Receiver.Pong) extends Message
+    case class PongSucceeded(msg: Receiver.Pong) extends Message
+    case class PongFailed(ex: Throwable) extends Message
 
     def apply(toRef: ActorRef[Receiver.Message], max: Int): Behavior[Message] =
       Behaviors.setup[Message] { context =>
         implicit val timeout = Timeout(3 seconds)
-        toRef ! Receiver.Ping(context.messageAdapter(ref => WrappedPong(ref)))
+        context.log.info("send: Ping")
+        // アスク
+        context.ask(toRef, Receiver.Ping) {
+          case Success(value) => PongSucceeded(value)
+          case Failure(ex)    => PongFailed(ex)
+        }
         def handler(counter: Int): Behavior[Message] =
+          // counterがゼロになったら終了する
           if (counter == 0)
             Behaviors.stopped
           else {
             Behaviors.receiveMessage {
-              case WrappedPong(_) =>
+              case PongFailed(ex) =>
+                context.log.error("occurred error", ex)
+                Behaviors.stopped
+              case PongSucceeded(_) =>
                 context.log.info(s"receive: Pong, $counter")
-                if (counter - 1 != 0)
-                  toRef ! Receiver.Ping(
-                    context.messageAdapter(ref => WrappedPong(ref))
-                  )
+                if (counter - 1 != 0) {
+                  context.log.info("send: Ping")
+                  // アスク
+                  context.ask(toRef, Receiver.Ping) {
+                    case Success(value) => PongSucceeded(value)
+                    case Failure(ex)    => PongFailed(ex)
+                  }
+                }
                 handler(counter - 1)
             }
           }
@@ -57,6 +73,7 @@ object PinPong extends App {
     val senderRef = context.spawn(Sender(receiverRef, 10), "sender")
     context.watch(senderRef)
     def handler(refCount: Int): Behavior[Any] = {
+      // counterがゼロになったら終了する
       if (refCount == 0)
         Behaviors.stopped
       else
