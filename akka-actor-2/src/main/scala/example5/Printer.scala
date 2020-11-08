@@ -7,7 +7,7 @@ object Printer {
 
   sealed trait Message
   case class PrintMe(message: String) extends Message
-  case object Stop extends Message
+  case object Stop                    extends Message
 
   def apply(): Behavior[Message] =
     Behaviors.receive {

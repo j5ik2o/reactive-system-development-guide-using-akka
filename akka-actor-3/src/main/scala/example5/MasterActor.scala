@@ -2,10 +2,10 @@ package example5
 
 import akka.actor.typed.scaladsl.AskPattern._
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import akka.actor.typed.{ ActorRef, ActorSystem, Behavior }
 import akka.util.Timeout
-import example5.MapActor.{MapInput, MapOutput}
-import example5.ReduceActor.{ReduceInput, ReduceOutput}
+import example5.MapActor.{ MapInput, MapOutput }
+import example5.ReduceActor.{ ReduceInput, ReduceOutput }
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Await
@@ -15,17 +15,15 @@ object MasterActor extends App {
 
   sealed trait Message
   trait Reply
-  case class CountReply(result: Map[String, Int]) extends Reply
-  case class Count(data: List[String], replyTo: ActorRef[CountReply])
-      extends Message
-  case class WrappedMapOutput(response: MapOutput) extends Message
-  case class WrappedReduceOutput(response: ReduceOutput) extends Message
+  case class CountReply(result: Map[String, Int])                     extends Reply
+  case class Count(data: List[String], replyTo: ActorRef[CountReply]) extends Message
+  case class WrappedMapOutput(response: MapOutput)                    extends Message
+  case class WrappedReduceOutput(response: ReduceOutput)              extends Message
 
   def apply(mapN: Int, reduceN: Int): Behavior[Message] = {
     Behaviors.setup[Message] { context =>
       @scala.annotation.tailrec
-      def split(data: List[(String, Int)],
-                result: Vector[ReduceInput]): Vector[ReduceInput] = {
+      def split(data: List[(String, Int)], result: Vector[ReduceInput]): Vector[ReduceInput] = {
         data match {
           case Nil => result
           case x :: xs =>
@@ -33,8 +31,7 @@ object MasterActor extends App {
             split(spannedXs._2, result :+ createReduceInput(x, spannedXs._1))
         }
       }
-      def createReduceInput(head: (String, Int),
-                            remainder: List[(String, Int)]): ReduceInput = {
+      def createReduceInput(head: (String, Int), remainder: List[(String, Int)]): ReduceInput = {
         val entries = ListBuffer.empty[(String, Int)] += head
         entries ++= remainder
         val mapper: ActorRef[ReduceOutput] =
@@ -42,8 +39,7 @@ object MasterActor extends App {
         val reduceInput = ReduceInput(head._1, entries.toList, mapper)
         reduceInput
       }
-      def reduced(reduceOutputs: List[ReduceOutput],
-                  replyTo: ActorRef[CountReply]): Behavior[Message] =
+      def reduced(reduceOutputs: List[ReduceOutput], replyTo: ActorRef[CountReply]): Behavior[Message] =
         Behaviors.setup[Message] { context =>
           context.children.foreach { c =>
             context.stop(c)
@@ -53,8 +49,7 @@ object MasterActor extends App {
           replyTo ! CountReply(result)
           init
         }
-      def reducing(reduceInputs: List[ReduceInput],
-                   replyTo: ActorRef[CountReply]) = {
+      def reducing(reduceInputs: List[ReduceInput], replyTo: ActorRef[CountReply]) = {
         val reduceOutputs = ListBuffer.empty[ReduceOutput]
         Behaviors.receiveMessage[Message] {
           case WrappedReduceOutput(ro) =>
@@ -65,15 +60,15 @@ object MasterActor extends App {
               Behaviors.same
         }
       }
-      def mapped(mapOutputs: List[MapOutput],
-                 replyTo: ActorRef[CountReply]): Behavior[Message] = {
+      def mapped(mapOutputs: List[MapOutput], replyTo: ActorRef[CountReply]): Behavior[Message] = {
         val reduceInputs = ListBuffer.empty[ReduceInput]
         Behaviors.setup[Message] { context =>
           context.children.foreach { c =>
             context.stop(c)
           }
-          val reduceActorRefs = for (i <- 1 to reduceN)
-            yield context.spawn(ReduceActor(), s"reducer-$i")
+          val reduceActorRefs =
+            for (i <- 1 to reduceN)
+              yield context.spawn(ReduceActor(), s"reducer-$i")
           val sortedMapOutputs =
             mapOutputs.flatMap(_.entries).sortWith(_._1 < _._1)
           val splited = split(sortedMapOutputs, Vector.empty)
@@ -96,33 +91,31 @@ object MasterActor extends App {
               Behaviors.same
         }
       }
-      def init: Behavior[Message] = Behaviors.receiveMessage[Message] {
-        case Count(data, replyTo) =>
-          val mapActorRefs = for (i <- 1 to mapN)
-            yield context.spawn(MapActor(), s"mapper-$i")
-          val mapper: ActorRef[MapOutput] =
-            context.messageAdapter[MapOutput](rsp => WrappedMapOutput(rsp))
-          data.zipWithIndex.foreach {
-            case (e, index) =>
-              mapActorRefs(index % mapActorRefs.length) ! MapInput(e, mapper)
-          }
-          mapping(data, replyTo)
-      }
+      def init: Behavior[Message] =
+        Behaviors.receiveMessage[Message] {
+          case Count(data, replyTo) =>
+            val mapActorRefs =
+              for (i <- 1 to mapN)
+                yield context.spawn(MapActor(), s"mapper-$i")
+            val mapper: ActorRef[MapOutput] =
+              context.messageAdapter[MapOutput](rsp => WrappedMapOutput(rsp))
+            data.zipWithIndex.foreach {
+              case (e, index) =>
+                mapActorRefs(index % mapActorRefs.length) ! MapInput(e, mapper)
+            }
+            mapping(data, replyTo)
+        }
       init
     }
   }
 
-  implicit val system = ActorSystem(apply(3, 3), "master")
+  implicit val system           = ActorSystem(apply(3, 3), "master")
   implicit val timeout: Timeout = 3.seconds
-  val future1 = system.ask[CountReply](
-    ref =>
-      Count(List("Hello World", "Hello Scala World", "Hello Java World"), ref)
-  )
-  val result1 = Await.result(future1, Duration.Inf)
+  val future1                   = system.ask[CountReply](ref => Count(List("Hello World", "Hello Scala World", "Hello Java World"), ref))
+  val result1                   = Await.result(future1, Duration.Inf)
   println(result1)
-  val future2 = system.ask[CountReply](
-    ref =>
-      Count(List("Hello World", "Hello Scala World", "Hello Kotlin World"), ref)
-  )
+
+  val future2 =
+    system.ask[CountReply](ref => Count(List("Hello World", "Hello Scala World", "Hello Kotlin World"), ref))
   val result2 = Await.result(future2, Duration.Inf)
 }

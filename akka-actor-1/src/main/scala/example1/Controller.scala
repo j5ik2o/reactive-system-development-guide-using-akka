@@ -1,7 +1,7 @@
 package example1
 
 import akka.actor.typed.Behavior
-import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
+import akka.actor.typed.scaladsl.{ ActorContext, Behaviors }
 
 object Controller {
 
@@ -15,7 +15,7 @@ object Controller {
     }
 
   private def processing(greetingCounter: Int, max: Int)(
-    context: ActorContext[GreetReply]
+      context: ActorContext[GreetReply]
   ): Behavior[GreetReply] = {
     Behaviors.receiveMessage[GreetReply] { message =>
       val n = greetingCounter + 1

@@ -1,7 +1,7 @@
 package example3
 
 import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.{ActorSystem, Behavior, PostStop}
+import akka.actor.typed.{ ActorSystem, Behavior, PostStop }
 
 object ActorLifecycle3 extends App {
 
@@ -23,13 +23,14 @@ object ActorLifecycle3 extends App {
         }
     }
 
-  def main: Behavior[Any] = Behaviors.setup { context =>
-    val childRef = context.spawn(child, "child")
-    childRef ! "test"
-    Thread.sleep(1000) // しばらく待つ
-    childRef ! "stop"
-    Behaviors.stopped
-  }
+  def main: Behavior[Any] =
+    Behaviors.setup { context =>
+      val childRef = context.spawn(child, "child")
+      childRef ! "test"
+      Thread.sleep(1000) // しばらく待つ
+      childRef ! "stop"
+      Behaviors.stopped
+    }
 
   ActorSystem(main, "main")
 
