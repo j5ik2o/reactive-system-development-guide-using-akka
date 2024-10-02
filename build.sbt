@@ -1,4 +1,4 @@
-lazy val akkaVersion = "2.8.6"
+lazy val akkaVersion = "2.8.7"
 
 val commonSettings = Seq(
   version := "1.0",
