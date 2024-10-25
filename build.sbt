@@ -15,7 +15,7 @@ val commonSettings = Seq(
     ),
   libraryDependencies ++= Seq(
     "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
-    "ch.qos.logback" % "logback-classic" % "1.5.11",
+    "ch.qos.logback" % "logback-classic" % "1.5.12",
     "com.typesafe.akka" %% "akka-actor-testkit-typed" % akkaVersion % Test,
     "org.scalatest" %% "scalatest" % "3.2.19" % Test
   ),
