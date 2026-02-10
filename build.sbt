@@ -2,7 +2,7 @@ lazy val akkaVersion = "2.8.8"
 
 val commonSettings = Seq(
   version := "1.0",
-  scalaVersion := "2.13.18",
+  scalaVersion := "3.8.1",
   scalacOptions ++=
     Seq(
       "-feature",
